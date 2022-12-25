@@ -26,6 +26,8 @@ subroutine write_outfile(counter)
          do j=1,Ny+1
             write(1, *) xnod(i,j),ynod(i,j),u(i,j),' ', &
                         s12(i,j),' ',h(i,j),' ',PML(i,j),' ',phi(i,j),' ',Ham(i,j)
+            !write(1, "(8(F64.32,a1))") xnod(i,j),' ',ynod(i,j),' ',u(i,j),' ', &
+            !            s12(i,j),' ',h(i,j),' ',PML(i,j),' ',phi(i,j),' ',Ham(i,j)
          enddo !'(6(F8.4))'
       enddo
    close(1)

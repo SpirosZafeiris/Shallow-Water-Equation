@@ -1,33 +1,3 @@
-subroutine zerosi(N, x)
-    implicit none
-    integer,   intent(in)    :: N
-    integer,   intent(inout) :: x(N)
-    integer                  :: i
-    do i=1,N
-        x(i) = 0
-    enddo
-endsubroutine zerosi
-
-subroutine zeros(N, x)
-    implicit none
-    integer,          intent(in)  :: N
-    double precision, intent(out) :: x(N)
-    integer                       :: i
-    do i=1,N
-        x(i) = 0.d0
-    enddo
-endsubroutine zeros
-
-subroutine ones(N, x)
-    implicit none
-    integer,          intent(in)  :: N
-    double precision, intent(out) :: x(N)
-    integer                       :: i
-    do i=1,N
-        x(i) = 1.d0
-    enddo
-endsubroutine ones
-
 subroutine linspace(N, a, b, x) ! checked
     implicit none
     integer,          intent(in)  :: N

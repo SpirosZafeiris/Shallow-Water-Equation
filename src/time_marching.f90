@@ -15,17 +15,18 @@ endsubroutine map_global
 
 
 subroutine explicit
+   use, intrinsic :: iso_fortran_env, only : real64
+   use Param
    use types
    use sizes
    use time
    use space
    implicit none
-   external wave_source
    integer :: i,j
-   double precision :: temp,rhs0,rhs
-   do i=1,Nx+1 ! calculate first & second derivatives
+   real(real64) :: temp,rhs0,rhs
+   do j=1,Ny+1
+      do i=1,Nx+1 ! calculate first & second derivatives
       if (t.eq.0) exit
-      do j=1,Ny+1
          if (PML(i,j).eq.0) then
             u(i,j) = u(i,j) + dt*du(i,j)! + dt22 * ddu(i,j)
             if (abs(u(i,j)).gt.100) then
@@ -57,8 +58,8 @@ subroutine explicit
          !phi(i,j) = phi(i,j) + dt*(-9.81d0*u(i,j))
       enddo
    enddo
-   do i=1,Nx+1
-      do j=1,Ny+1
+   do j=1,Ny+1
+      do i=1,Nx+1
          if (i.gt.1.and.i.lt.(Nx+1)) then
             ux  = (u(i+1,j) - u(i-1,j)) / (dx2)
             uxx = (u(i-1,j) - 2*u(i,j) + u(i+1,j)) / (dx22)
@@ -81,7 +82,8 @@ subroutine explicit
          endif
          ! ---------calculate second derivatives
          if (PML(i,j).eq.0) then
-            call wave_source(xnod(i,j), ynod(i,j),t, temp)
+            temp = 0._real64
+            !temp = wave_source(xnod(i,j), ynod(i,j), t)
             rhs = h_x(i,j)*ux+h_y(i,j)*uy + h(i,j)*(uxx+uyy) + temp
             rhs = rhs*9.81d0
             du(i,j) = du(i,j) + dt*rhs
@@ -103,6 +105,34 @@ subroutine explicit
          endif
       enddo
    enddo
+   contains
+
+   function wave_source(x,y,t) result(yy)
+      real(real64) :: yy, A0, om
+      real(real64), intent(in) :: x,y,t
+      A0 = 0.01_real64
+      om = 0.4_real64*pi
+      yy = exp(-0.01_real64* (x+100_real64)*(x+100_real64))
+      yy = yy*(0.5_real64+0.5_real64*tanh(0.5_real64*(y+120_real64)))*(0.5_real64-0.5_real64*tanh(0.5_real64*(y-120_real64)))
+      yy = A0*yy*cos(om*t)
+   endfunction wave_source
+
+!   subroutine wave_source(x,y,t, yy)
+!      use Param
+!      implicit none
+!      double precision, intent(in)  :: x,y,t
+!      double precision, intent(out) :: yy
+!      double precision              :: A0,om
+!      A0 = 0.01
+!      om = 0.4*pi
+!      !yy = exp(-50*tempx**2)*(0.5+0.5*tanh(50*(tempy+0.5)))*(0.5-0.5*tanh(50*(tempy-0.5)))
+!      !yy = A0*yy*cos(om*t)
+!      yy = exp(-0.01* (x+100)**2)
+!      !yy = 0.05*(1-(x+100)**2)*exp(-0.01* (x+100)**2)
+!      yy = yy*(0.5+0.5*tanh(0.50*(y+120)))*(0.5-0.5*tanh(0.50*(y-120)))
+!      yy = A0*yy*cos(om*t)
+!      !yy = 0.d0
+!   endsubroutine wave_source
 endsubroutine explicit
 
 subroutine calc_ham

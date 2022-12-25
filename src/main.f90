@@ -26,13 +26,13 @@ Program Swe
    Nynod = Ny+1
    dof = Nxnod*Nynod
       !! determine boundary positions
-   xedge(1) = -300; xedge(2)=300
-   yedge(1) = -250; yedge(2)=250
+   xedge(1) = -300._real64; xedge(2)=300._real64
+   yedge(1) = -250._real64; yedge(2)=250._real64
    len_PML = 60.d0
 
       ! determine PML coefficient
    const = -2.5e-4 ! for quadratic sigma distribution
-   const = -8.0d0 ! for inverse linear sigma distribution
+   const = -8._real64 ! for inverse linear sigma distribution
    !const = -8.5e-6 ! for qubic sigma distribution
    !const = -2.5e-3 ! for qubic sigma distribution
       !! value allocation
@@ -43,6 +43,7 @@ Program Swe
    do j=1,Ny+1
       xnod(:,j) = x
    enddo
+
    do i=1,Nx+1
       ynod(i,:) = y
    enddo
@@ -60,16 +61,11 @@ Program Swe
    dt = 1e-2
    dt22 = dt**2 / 2.d0
    dx2 = 2*dx; dx22 = dx**2; dy2 = 2*dy; dy22 = dy**2
-   !!!!lenx = xnod(Nx+1-Npml,1)-xnod(1+Npml,1) !maxval((/abs(xedge(2)), abs(xedge(1))/))
-   !!!!leny = ynod(1,Ny+1-Npml)-ynod(1,1+Npml) !maxval((/abs(yedge(2)), abs(yedge(1))/))
-   !!!!lenx = lenx / 2
-   !!!!leny = leny / 2
+
    lenx(1) = abs(abs(xedge(1))-len_PML)
    lenx(2) = abs(abs(xedge(2))-len_PML)
    leny(1) = abs(abs(yedge(1))-len_PML)
    leny(2) = abs(abs(yedge(2))-len_PML)
-   print *, lenx
-   print *, leny
 
 
    ! ------------initial values--------------------------
@@ -82,8 +78,9 @@ Program Swe
             h(Nx+1,Ny+1) , h_x(Nx+1,Ny+1), h_y(Nx+1,Ny+1) , &
             PML(Nx+1,Ny+1),phi(Nxnod,Nynod),Ham(Nx+1,Ny+1)  )
    PML = 0
-   do i=1,Nx+1
-      do j=1,Ny+1
+   do j=1,Ny+1
+      do i=1,Nx+1
+            !! initial conditions
          call phi0(xnod(i,j), temp)
          phi(i,j) = temp
          call u0(xnod(i,j),ynod(i,j), temp)!initiate elevation & velocity
@@ -105,8 +102,9 @@ Program Swe
          endif
       enddo
    enddo
-   do i=1,Nxnod
-      do j=1,Nynod
+   do j=1,Nynod
+      do i=1,Nxnod
+            !! assign depth formation on the grid
          call fh(xnod(i,j),ynod(i,j), temp)!assign depth
          h(i,j) = temp
          if (PML(i,j).eq.0) then
@@ -115,8 +113,8 @@ Program Swe
             call fhy(xnod(i,j),ynod(i,j), temp)
             h_y(i,j) = temp
          else
-            h_x(i,j) = 0.d0
-            h_y(i,j) = 0.d0
+            h_x(i,j) = 0._real64
+            h_y(i,j) = 0._real64
          endif
       enddo
    enddo
@@ -131,8 +129,9 @@ Program Swe
    !enddo
 
    s1 = 0.d0; s2 = 0.d0; s1_x = 0.d0; s2_y = 0.d0
-   do i=1,Nx+1
-      do j=1,Ny+1
+   do j=1,Ny+1
+      do i=1,Nx+1
+            !! calculate PML sinks
          if (PML(i,j).eq.1) then
             if (xnod(i,j).lt.0.d0.and.abs(xnod(i,j)).ge.lenx(1).or. &
                 xnod(i,j).gt.0.d0.and.abs(xnod(i,j)).ge.lenx(2)) then
@@ -163,7 +162,6 @@ Program Swe
             endif
          endif
          s12(i,j) = s1(i,j)+s2(i,j)
-         write(43,*) xnod(i,j),ynod(i,j),s1(i,j)
       enddo
    enddo
    !allocate(ux(Nx+1,Ny+1), uy(Nx+1,Ny+1),uxx(Nx+1,Ny+1), uyy(Nx+1,Ny+1))
@@ -202,25 +200,27 @@ Program Swe
 
    ! ------functions-------------------------
    contains
+      !! velocity initial condition, user defined
       subroutine u0(x,y, yy)
          use Param
          implicit none
          real(real64), intent(in)  :: x, y
          real(real64), intent(out) :: yy
-         ! real(real64) :: A, k, om
-         !A = 0.1
-         !k = 0.03*pi
-         !om = 0.7*pi
-         !if (x.gt.0.d0.and.x.lt.2.d0) then
-         !yy = A*cos(k*x)
-         !else
-         !   yy = 0.d0
-         !endif
+          real(real64) :: A, k, om
+         A = 0.1
+         k = 0.03*pi
+         om = 0.7*pi
+         if (x.gt.0.d0.and.x.lt.2.d0) then
+         yy = A*cos(k*x)
+         else
+            yy = 0.d0
+         endif
          !yy = 0.1*exp(-((x+100)**2+y**2)/100)
          !yy = 0.1*exp(-(x**2+y**2)/100)
-         yy = 0.d0*x*y
+         !yy = 0.d0*x*y
       endsubroutine u0
 
+      !! velocity time derivative initial condition, user defined
       subroutine du0(x,y, yy)
          use Param
          implicit none
@@ -237,7 +237,8 @@ Program Swe
          !endif
          yy = 0.d0*x*y
       endsubroutine du0
-
+      
+      !! depth equation, user defined
       subroutine fh(x,y, yy)
          use Param
          use ellipsis
@@ -268,7 +269,8 @@ Program Swe
          yy = yy + h0
          !yy = h0
       endsubroutine fh
-
+      
+      !! depth equation spacial derivative-x, fh manually differentiated
       subroutine fhx(x,y, yy)
          use ellipsis
          use space
@@ -301,7 +303,8 @@ Program Swe
          yy = (tmp1-tmp2)/dx2
          !yy = 0
       endsubroutine fhx
-
+      
+      !! depth equation spacial derivative-y, fh manually differentiated
       subroutine fhy(x,y, yy)
          use ellipsis
          use space
@@ -327,6 +330,7 @@ Program Swe
          !yy = 0
       endsubroutine fhy
 
+      !! equation of x-PML sink function, user defined 
       subroutine fs1(x, yy)
          use types
          implicit none
@@ -338,6 +342,7 @@ Program Swe
          yy = const / (abs(xedge(2))+dx - abs(x))
       endsubroutine fs1
 
+      !! equation of y-PML sink function, user defined 
       subroutine fs2(y, yy)
          use types
          implicit none
@@ -349,6 +354,7 @@ Program Swe
          yy = const / (abs(yedge(2))+dy - abs(y)) ! inverse linear
       endsubroutine fs2
 
+      !! equation of x-PML sink function x-derivative, depends on fs1
       subroutine fs1_x(x, yy)
          use types
          implicit none
@@ -360,6 +366,7 @@ Program Swe
          yy = -const / (abs(xedge(2))+dx - abs(x))**2
       endsubroutine fs1_x
 
+      !! equation of y-PML sink function y-derivative, depends on fs2
       subroutine fs2_y(y, yy)
          use types
          implicit none
