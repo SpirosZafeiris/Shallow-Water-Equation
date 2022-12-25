@@ -171,7 +171,7 @@ Program Swe
    counter = -1
    t1=0.d0; t2=0.d0
    full_time = 0.d0
-   write(*,*), 'Begin loop'
+   write(*,'(a)') 'Begin loop'
 
    !call map_global
 
@@ -182,6 +182,7 @@ Program Swe
        !! configure to specify at how many steps an output is created
       if (mod(counter,100).eq.0) then 
          call write_outfile(counter)
+         ! call write_cgns(counter) !! uncomment for fast CGNS I/O (HDF5 required)
       endif
       full_time = full_time + (t2-t1)
       write(*,'(a,i10.10,a,f12.7,a,f8.6)')'iteration: ',counter,', time of simulation: ',t,' sec, elapsed time: ',t2-t1

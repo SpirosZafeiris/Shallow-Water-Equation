@@ -1,9 +1,12 @@
 # Set Compiler 
 cmake_host_system_information(RESULT host QUERY HOSTNAME)
 
-set(ENV{FC} mpiifort)
+#set(ENV{FC} ifort)
+
+
 
 cmake_minimum_required(VERSION 3.12)
+
 
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
@@ -26,13 +29,34 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
     "Debug" "Release")
 endif()
+set(LIBS "")
+
+option(CGNS "Include CGNS library" OFF)
+if (CGNS)
+   set(CGNS_LIB_DIR ${CMAKE_SOURCE_DIR}/lib/cgns/lib)
+   set(CGNS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/lib/cgns/include)
+   find_library(LIBCGNS NAMES libcgns.so HINTS ${CMAKE_SOURCE_DIR}/lib/cgns/lib)
+   string(APPEND CMAKE_Fortran_FLAGS " -I ${CGNS_INCLUDE_DIR} \
+                       -L ${CGNS_LIB_DIR} ")
+                      list(APPEND LIBS ${LIBCGNS})
+endif()
+
+
+
 
 # Source Dirs
 add_subdirectory(src)
 
-# SET COMPILER FOR THE TWO BUILD TYPES
-set (CMAKE_Fortran_FLAGS_RELEASE "-O3 -qopenmp") #-qmkl=parallel 
-set (CMAKE_Fortran_FLAGS_DEBUG "-O0 -pg -qmkl -C -init=snan -traceback -fpe0 -fpp -diag-enable=all -warn all")
+# Set some default compilation settings for Fortran compiler
+if (${CMAKE_Fortran_COMPILER_ID} STREQUAL "GNU")
+   set(CMAKE_Fortran_FLAGS_RELEASE "-O3")
+   set(CMAKE_Fortran_FLAGS_DEBUG "-fbounds-check -fbacktrace -fdefault-real-8 -ffree-line-length-none")
+elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
+   set (CMAKE_Fortran_FLAGS_RELEASE "-O3")
+   set (CMAKE_Fortran_FLAGS_DEBUG "-O0 -pg -qmkl -C -init=snan -traceback -fpe0 -fpp -diag-enable=all -warn all")
+endif()
 
 # DEFINE EXECUTABLES
 add_executable (Swe ${OBJS})
+
+target_link_libraries(Swe PRIVATE ${LIBS})

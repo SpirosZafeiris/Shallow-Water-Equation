@@ -82,8 +82,8 @@ subroutine explicit
          endif
          ! ---------calculate second derivatives
          if (PML(i,j).eq.0) then
-            temp = 0._real64
-            !temp = wave_source(xnod(i,j), ynod(i,j), t)
+            !temp = 0._real64
+            temp = wave_source(xnod(i,j), ynod(i,j), t)
             rhs = h_x(i,j)*ux+h_y(i,j)*uy + h(i,j)*(uxx+uyy) + temp
             rhs = rhs*9.81d0
             du(i,j) = du(i,j) + dt*rhs
