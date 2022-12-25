@@ -1,4 +1,5 @@
 Program Swe
+   use, intrinsic :: iso_fortran_env, only : real64, int32
    use types
    use time 
    use space
@@ -11,26 +12,30 @@ Program Swe
    external calc_Ham
    external integrate_ham
    integer :: i,j,coun,counter
-   double precision, allocatable :: x(:),y(:)
-   double precision :: temp,len_PML,t1,t2,full_time
-   !!!!!open(4,file='input')
-   !!!!!read(4,*) a
-   !!!!!read(4,*) b
-   !!!!!close(4)
-   !!!!!print *, a, b
+   real(real64), allocatable :: x(:),y(:)
+   real(real64) :: temp, len_PML, t1, t2, full_time
+   !open(4,file='input')
+   !read(4,*) a
+   !read(4,*) b
+   !close(4)
+   !print *, a, b
+      !! determine total number of segments per direction
    Nx = 300
    Ny = 300
    Nxnod = Nx+1
    Nynod = Ny+1
    dof = Nxnod*Nynod
+      !! determine boundary positions
    xedge(1) = -300; xedge(2)=300
    yedge(1) = -250; yedge(2)=250
    len_PML = 60.d0
 
+      ! determine PML coefficient
    const = -2.5e-4 ! for quadratic sigma distribution
    const = -8.0d0 ! for inverse linear sigma distribution
    !const = -8.5e-6 ! for qubic sigma distribution
    !const = -2.5e-3 ! for qubic sigma distribution
+      !! value allocation
    allocate(x(Nx+1),y(Ny+1),xnod(Nx+1,Ny+1), ynod(Nx+1,Ny+1))
    call linspace(Nx+1,xedge(1),xedge(2), x)
    call linspace(Ny+1,yedge(1),yedge(2), y)
@@ -43,9 +48,10 @@ Program Swe
    enddo
 
    dx = x(2)-x(1)
+      !! grid x-spacing 
    dy = y(2)-y(1)
-   print *, 'dx', dx
-   print *, 'dy', dy
+      !! grid y-spacing 
+   deallocate(x, y)
 
    Npml = len_PML/dx+1
 
@@ -175,7 +181,8 @@ Program Swe
       counter = counter + 1
       t = t + dt
       ! ---------write output file -----------------------
-      if (mod(counter,100).eq.0) then
+       !! configure to specify at how many steps an output is created
+      if (mod(counter,100).eq.0) then 
          call write_outfile(counter)
       endif
       full_time = full_time + (t2-t1)
@@ -198,12 +205,12 @@ Program Swe
       subroutine u0(x,y, yy)
          use Param
          implicit none
-         double precision, intent(in)  :: x, y
-         double precision, intent(out) :: yy
-         !!!!double precision              :: A, k, om
-         !!!!A = 0.1
-         !!!!k = 0.03*pi
-         !!!!om = 0.7*pi
+         real(real64), intent(in)  :: x, y
+         real(real64), intent(out) :: yy
+         ! real(real64) :: A, k, om
+         !A = 0.1
+         !k = 0.03*pi
+         !om = 0.7*pi
          !if (x.gt.0.d0.and.x.lt.2.d0) then
          !yy = A*cos(k*x)
          !else
@@ -217,8 +224,8 @@ Program Swe
       subroutine du0(x,y, yy)
          use Param
          implicit none
-         double precision, intent(in)  :: x, y
-         double precision, intent(out) :: yy
+         real(real64), intent(in)  :: x, y
+         real(real64), intent(out) :: yy
          !!!!double precision              :: A, k, om
          !!!!A = 0.1
          !!!!k = 0.03*pi
@@ -235,28 +242,28 @@ Program Swe
          use Param
          use ellipsis
          implicit none
-         double precision, intent(in)  :: x,y
-         double precision, intent(out) :: yy
-         double precision :: x_dash,y_dash,Aw,k
+         real(real64), intent(in)  :: x,y
+         real(real64), intent(out) :: yy
+         real(real64) :: x_dash,y_dash,Aw,k
          !a = 10
          !b = 20
          !c = 1
-         !!!!!yy = h0 ! ellispis
-         !!!!!x_dash = x - x0
-         !!!!!y_dash = y - y0
-         !!!!!if ((x_dash/a)**2+(y_dash/b)**2.lt.1) then
-         !!!!!   yy = sqrt( 1 - (x_dash/a)**2 - (y_dash/b)**2 )
-         !!!!!   yy = yy * c ! relative depth
-         !!!!!   yy = h0 + yy
-         !!!!!endif! ellipsis
-         !!!!Aw = 2 !ripple bed
-         !!!!k = pi/10
-         !!!!if (x.gt.(-20).and.x.lt.100) then
-         !!!!   yy = Aw*sin(k*x)
-         !!!!else
-         !!!!   yy = 0.d0
-         !!!!endif
-         !!!!yy = yy + h0
+         !yy = h0 ! ellispis
+         !x_dash = x - x0
+         !y_dash = y - y0
+         !if ((x_dash/a)**2+(y_dash/b)**2.lt.1) then
+         !   yy = sqrt( 1 - (x_dash/a)**2 - (y_dash/b)**2 )
+         !   yy = yy * c ! relative depth
+         !   yy = h0 + yy
+         !endif! ellipsis
+         !Aw = 2 !ripple bed
+         !k = pi/10
+         !if (x.gt.(-20).and.x.lt.100) then
+         !   yy = Aw*sin(k*x)
+         !else
+         !   yy = 0.d0
+         !endif
+         !yy = yy + h0
          call slit(x,y, yy)
          yy = yy + h0
          !yy = h0
@@ -265,9 +272,9 @@ Program Swe
       subroutine fhx(x,y, yy)
          use ellipsis
          use space
-         double precision, intent(in)  :: x,y
-         double precision, intent(out) :: yy
-         double precision :: tmp1,tmp2
+         real(real64), intent(in)  :: x,y
+         real(real64), intent(out) :: yy
+         real(real64) :: tmp1,tmp2
          tmp1 = 0
          tmp2 = 0
          !a = 5
@@ -299,9 +306,9 @@ Program Swe
          use ellipsis
          use space
          implicit none
-         double precision, intent(in)  :: x,y
-         double precision, intent(out) :: yy
-         double precision :: x_dash,y_dash,tmp1,tmp2
+         real(real64), intent(in)  :: x,y
+         real(real64), intent(out) :: yy
+         real(real64) :: x_dash,y_dash,tmp1,tmp2
          !a = 2
          !b = 10
          !c = 2
@@ -323,8 +330,8 @@ Program Swe
       subroutine fs1(x, yy)
          use types
          implicit none
-         double precision, intent(in)  :: x
-         double precision, intent(out) :: yy
+         real(real64), intent(in)  :: x
+         real(real64), intent(out) :: yy
          !yy = const*abs(lenx - abs(x)) ! linear
          !yy = const*(lenx-abs(x))**2
          !yy = const*abs((lenx-abs(x))**3)
@@ -334,8 +341,8 @@ Program Swe
       subroutine fs2(y, yy)
          use types
          implicit none
-         double precision, intent(in) :: y
-         double precision, intent(out) :: yy
+         real(real64), intent(in) :: y
+         real(real64), intent(out) :: yy
          !yy = const*abs(leny - abs(y)) ! linear
          !yy = const*(leny-abs(y))**2  ! quadratic
          !yy = const*abs((leny-abs(y))**3)  ! qubic
@@ -345,8 +352,8 @@ Program Swe
       subroutine fs1_x(x, yy)
          use types
          implicit none
-         double precision, intent(in) :: x
-         double precision, intent(out) :: yy
+         real(real64), intent(in) :: x
+         real(real64), intent(out) :: yy
          !yy = const * abs(x)
          !yy = 2*const*(abs(x)-lenx)
          !yy = 3*const*(lenx-abs(x))**2
@@ -356,8 +363,8 @@ Program Swe
       subroutine fs2_y(y, yy)
          use types
          implicit none
-         double precision, intent(in) :: y
-         double precision, intent(out) :: yy
+         real(real64), intent(in) :: y
+         real(real64), intent(out) :: yy
          !yy = const * abs(y)
          !yy = 2*const*(abs(y)-leny)
          !yy = 3*const*(leny-abs(y))**2
@@ -367,9 +374,9 @@ Program Swe
       subroutine phi0(x, yy)
          use Param
          implicit none
-         double precision, intent(in)  :: x
-         double precision, intent(out) :: yy
-         double precision              :: A, k, om
+         real(real64), intent(in)  :: x
+         real(real64), intent(out) :: yy
+         real(real64)              :: A, k, om
          A = 0.1
          k = 0.03*pi
          om = 0.7*pi
