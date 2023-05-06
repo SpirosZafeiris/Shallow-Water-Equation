@@ -15,32 +15,39 @@ The output is in tecplot .dat format and the initial conditions are user-defined
 * Requires intel compilers 
 
 1.  Clone the repository
-   ```bash
+    
+    ```bash
     git clone git@github.com:SpirosZafeiris/Shallow-Water-Equation.git
+    ```
+    ```bash
     cd Shallow-Water-Equation
+    ```
+    ```bash
     mkdir build
-    cd build
+    ```
+    ```bash
+    cd build/
     ```
 2.  Initiate cmake:
-    ```
+    ```bash
     cmake ../
     ```
 3. Build with Make:
-    ```
+    ```bash
     make
     ```
 
 ## Run
 
 1. Run with:
-    ```
+    ```bash
     ./shallow_water_equation.out
     ```
 
 ## Advanced
 
 1. To use a fast I/O with cgns/hdf5 to create animative fields do the following:
-    ```
+    ```bash
     cd Shallow-Water-Equation
     ./install-hdf5.sh
     ./install-cgns.sh
