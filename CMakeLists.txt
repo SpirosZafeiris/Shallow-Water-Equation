@@ -57,6 +57,6 @@ elseif (${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")
 endif()
 
 # DEFINE EXECUTABLES
-add_executable (Swe ${OBJS})
+add_executable (shallow_water_equation.out ${OBJS} ${OBJS_CGNS})
 
-target_link_libraries(Swe PRIVATE ${LIBS})
+target_link_libraries(shallow_water_equation.out PRIVATE ${LIBS})
